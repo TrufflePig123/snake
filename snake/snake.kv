@@ -1,12 +1,5 @@
-#: import NoTransition kivy.uix.screenmanager.NoTransition
-ScreenManager:
-    transition: NoTransition()
-    TitleView:
-    GameView:
-    GameOverView:
 
-
-<TitleView>
+<TitleView>:
     name: 'TitleView'
     BoxLayout:
         orientation:'vertical'
@@ -24,17 +17,16 @@ ScreenManager:
             on_press: app.root.current = 'GameOverView' #TODO for testing; delete me
 
 
-<GameView>
+<GameView>:
     name: 'GameView'
     canvas.before:
         Color:
-            rgb: 143/255, 12/255, 166/255 #Color is tentative
+            rgb: 39/255, 158/255, 232/255 #Color is tentative
         Rectangle:
             pos: self.pos
             size: self.size
     BoxLayout:
         orientation:'vertical'
-        size_hint: 1, 0.1
         BoxLayout:
             orientation:'horizontal'
             size_hint: 1, 0.1
@@ -46,12 +38,17 @@ ScreenManager:
             Label:
                 text:'<score>'
                 size_hint: 0.2, 1
-
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            Button: #For testing to see how this works; replace me with GameGrid?
+                text:'g'
+                #Need to set size_hint to None in order to reset this button's relative positioning, which was previously set by the BoxLayout.
+                size_hint: None, None
+                size: '600dp', '600dp' 
     
         
-
-
-<GameOverView>
+<GameOverView>:
     name: 'GameOverView'
     BoxLayout:
         orientation:'vertical'

@@ -41,13 +41,14 @@
         AnchorLayout:
             anchor_x: 'center'
             anchor_y: 'center'
-            Button: #For testing to see how this works; replace me with GameGrid?
-                text:'g'
-                #Need to set size_hint to None in order to reset this button's relative positioning, which was previously set by the BoxLayout.
+            GameGrid:
                 size_hint: None, None
                 size: '600dp', '600dp' 
-    
-        
+
+
+           
+
+
 <GameOverView>:
     name: 'GameOverView'
     BoxLayout:

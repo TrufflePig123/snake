@@ -1,0 +1,6 @@
+Putting rgb codes here so i dont forget
+
+Screen background: 191, 215, 234
+Snake: 10, 135, 84
+Game grid: 80, 140, 164 
+Cell borders: 145, 174, 193

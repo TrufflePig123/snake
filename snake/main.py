@@ -8,6 +8,7 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen , ScreenManager, NoTransition
 from kivy.uix.widget import Widget
+from kivy.core.window import Window
 
 class SnakeApp(App):
     '''Kivy base application class. Initalizes the model, view, and controller during application startup. Acts as application entry point.
@@ -92,36 +93,64 @@ class TitleView(Screen):
     '''Starting screen of the application; first screen the user interacts with. Contains buttons to start the game and exit the application.'''
 
 
-class GameView(Screen):
-    '''Screen where the game actually takes place.'''
+class GameView(Screen): #TODO -- give this boy a direct reference to its GameGrid (probably through an objprop)
+    '''Screen where the game actually takes place. Handles keyboard input from the user.'''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        #Only request the keyboard when we navigate into this view. 
+        self.bind(on_pre_enter=self.get_keyboard)
+    
+    def get_keyboard(self, value):
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        print(f"The key {text} was pressed") #dummy testing code for now
+    
 
 class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
 
 
 class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuff
+    '''Represents the main board where the game wil be played. Displays key information about the game, such as
+    location of the snake and location of food, and responds to the input''' #finish docs bc yk
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.rows = 10
         self.cols = 10
 
+        #Add cells to the board
         for i in range(self.rows*self.cols):
             self.add_widget(self.create_cell())
     
-    def create_cell(self): #might be better to export into a different class
+    def create_cell(self): 
         return GridCell()
+    
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
 
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        print(f"The key {text} was pressed")
+    
 
 class GridCell(Widget):
+    '''Graphical representation of an individual cell. Consists of a rectangle and a line (for drawing the border).'''
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with self.canvas:
-            Color(1, 0, 0) #TODO -- fix color
+            Color(80/255, 140/255, 164/255) #TODO -- fix color
             self.rect = Rectangle(pos=self.pos, size=self.size)
 
         with self.canvas:
-            Color(0, 0, 0) # TODO -- fix color
+            Color(145/255, 174/255, 193/255) # TODO -- fix color
             self.border = Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
         
         self.bind(pos=self.update_rect, size=self.update_rect)
@@ -140,15 +169,9 @@ class GridCell(Widget):
         
         instance.rect.pos = instance.pos 
         instance.rect.size = instance.size
-        #Also update size/pos of the border.
+
         instance.border.rectangle = (self.x, self.y, self.width, self.height)
     
-
-            
-            
-
-
-
 
 #Can't place a direct call to main here. For the class rules defined in kv to reflect on the screens,
 #The screen objects need to be instantiated once (and only once) the application loop is already running.

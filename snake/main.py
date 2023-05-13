@@ -99,14 +99,22 @@ class GameView(Screen): #TODO -- give this boy a direct reference to its GameGri
         super().__init__(**kwargs)
         #Only request the keyboard when we navigate into this view. 
         self.bind(on_pre_enter=self.get_keyboard)
+        self.bind(on_pre_leave=self._keyboard_closed)
     
-    def get_keyboard(self, value):
+    def get_keyboard(self, instance):
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
+    def _keyboard_closed(self, instance=None):
+        '''Removes the keyboard upon exiting the application or the GameView screen.
+        Params:
+        -------
+        instance: GameView
+            Refers to self, the current GameView. Set as a default for error prevention (make these docs better).
+        '''
+        if self._keyboard != None:
+            self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+            self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         print(f"The key {text} was pressed") #dummy testing code for now
@@ -118,7 +126,7 @@ class GameOverView(Screen):
 
 class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuff
     '''Represents the main board where the game wil be played. Displays key information about the game, such as
-    location of the snake and location of food, and responds to the input''' #finish docs bc yk
+    location of the snake and location of food.''' #finish docs bc yk
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -132,12 +140,7 @@ class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuf
     def create_cell(self): 
         return GridCell()
     
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        print(f"The key {text} was pressed")
+    
     
 
 class GridCell(Widget):

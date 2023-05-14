@@ -1,7 +1,8 @@
 from controller import Controller
-from model import Model
+from model import Model, Game, Snake
 from kivy.app import App
 from kivy.graphics import Color, Rectangle, Line
+from kivy.properties import ListProperty
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
@@ -35,7 +36,7 @@ class SnakeApp(App):
     def main(self): # might rename
         '''Instantiates both the model and the controller using the views created in the setup_views method.'''
         sm = self.sm
-        model = Model()
+        model = Model(Game(), Snake())
         controller = Controller(sm.title, sm.game_view, sm.gameover_view, model)
        
     def setup_views(self):
@@ -136,9 +137,15 @@ class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuf
         #Add cells to the board
         for i in range(self.rows*self.cols):
             self.add_widget(self.create_cell())
+
+    segments = ListProperty([32, 33, 34])
     
     def create_cell(self): 
         return GridCell()
+
+    #Testing, see the top button on GameView for call
+    def on_segments(self, instance, value):
+        print(f'New segment at {value}')
     
     
     

@@ -6,3 +6,10 @@ class Controller: #might want to create different classes for different controll
         self.game_view = game_view
         self.gameover_view = gameover_view
         self.model = model
+
+    def update_segments(self): #We want to update the model segments in here, binded to some sort of event in kv
+        self.model.set_segments([33]) #Placeholder value
+
+    def update_snake(self): #We want to notify the view of the new segments her
+        segments = self.model.get_segments()
+        self.game_view.segments = segments

@@ -99,7 +99,7 @@ class GameView(Screen): #TODO -- give this boy a direct reference to its GameGri
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         #Only request the keyboard when we navigate into this view. 
-        self.bind(on_pre_enter=self.get_keyboard)
+        self.bind(on_pre_enter=self.get_keyboard) 
         self.bind(on_pre_leave=self._keyboard_closed)
     
     def get_keyboard(self, instance):
@@ -129,22 +129,25 @@ class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuf
     '''Represents the main board where the game wil be played. Displays key information about the game, such as
     location of the snake and location of food.''' #finish docs bc yk
 
+    segments = ListProperty()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.rows = 10
         self.cols = 10
-
         #Add cells to the board
         for i in range(self.rows*self.cols):
             self.add_widget(self.create_cell())
+        
 
-    segments = ListProperty([32, 33, 34])
-    
     def create_cell(self): 
         return GridCell()
 
+
+
     #Testing, see the top button on GameView for call
-    def on_segments(self, instance, value):
+    def on_segments(self, instance, value): #Draw on cells here
+        '''What happens when segments added'''
         print(f'New segment at {value}')
     
     

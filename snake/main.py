@@ -1,6 +1,7 @@
 from controller import Controller
 from model import Model, Game, Snake
 from kivy.app import App
+from kivy.event import EventDispatcher
 from kivy.graphics import Color, Rectangle, Line
 from kivy.properties import ListProperty
 from kivy.uix.button import Button
@@ -124,12 +125,17 @@ class GameView(Screen): #TODO -- give this boy a direct reference to its GameGri
 class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
 
+class GameEventHandler(EventDispatcher): #For defining custom events
+    def __init__(self, **kwargs):
+        pass
 
-class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuff
+
+
+class GameGrid(GridLayout): 
     '''Represents the main board where the game wil be played. Displays key information about the game, such as
     location of the snake and location of food.''' #finish docs bc yk
 
-    segments = ListProperty()
+    segments = ListProperty() #Whenever food is eaten, fire event to update this and model
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -140,34 +146,53 @@ class GameGrid(GridLayout): #Gridlayout? look for other layouts to test and stuf
             self.add_widget(self.create_cell())
         
 
+        self.segments = [51, 52, 53]
+        
+
     def create_cell(self): 
         return GridCell()
 
-
-
-    #Testing, see the top button on GameView for call
-    def on_segments(self, instance, value): #Draw on cells here
+    
+    def on_segments(self, instance, new_segments): 
         '''What happens when segments added'''
-        print(f'New segment at {value}')
-    
-    
-    
+        print(f'New segment at {new_segments}') # Testing statement
+        cells = self.children[::-1]
+        #print(cells)
+
+        rect = (10/255, 135/255, 84/255)
+        border = (145/255, 174/255, 193/255)
+        for i in new_segments:
+            cells[i].draw_cell(rect, border)
+
+        #TODO Fire the event from the controller here to update the model
+                    
 
 class GridCell(Widget):
     '''Graphical representation of an individual cell. Consists of a rectangle and a line (for drawing the border).'''
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        rect = (80/255, 140/255, 164/255)
+        border = (145/255, 174/255, 193/255)
+        self.draw_cell(rect, border)
+
+        self.bind(pos=self.update_rect, size=self.update_rect)
+    
+    def draw_cell(self, rect_rgb, border_rgb):
+        #Before we draw, get rid of any double-draw mistakes by clearing hte canvas.
+        self.canvas.clear()
+
+        r, g, b = rect_rgb
         with self.canvas:
-            Color(80/255, 140/255, 164/255) #TODO -- fix color
+            Color(r, g, b) #TODO -- fix color
             self.rect = Rectangle(pos=self.pos, size=self.size)
 
+        r, g, b = border_rgb
         with self.canvas:
-            Color(145/255, 174/255, 193/255) # TODO -- fix color
+            Color(r, g, b) # TODO -- fix color
             self.border = Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
         
-        self.bind(pos=self.update_rect, size=self.update_rect)
-        
+
     def update_rect(self, instance, value):
         '''Method to ensure that the drawn rectangle + border reacts to changes in size and position. Code stolen from https://kivy.org/doc/stable/guide/widgets.html#adding-widget-background
         

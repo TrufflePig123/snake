@@ -27,10 +27,11 @@ class Snake:
         self.direction = 'D'
         self._segments = [32, 33, 34]
     
-    @property
+    @property #These properties mostly for testin'
     def segments(self):
         return self._segments
     
     @segments.setter
     def segments(self, value):
         self._segments = value
+        print(f'Segments set to new value: {value}')

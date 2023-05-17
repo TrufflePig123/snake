@@ -41,9 +41,11 @@ class SnakeApp(App):
         controller = Controller(sm.title, sm.game_view, sm.gameover_view, model)
        
     def setup_views(self):
-        '''Creates instances of each of the application screens and of the application screenmanager.'''
+        '''Creates instances of each of the application screens (as well as relevant widgets) and of the application screenmanager.'''
         title_view = TitleView(name='TitleView')
-        game_view = GameView(name='GameView')
+        #Setting size_hint to None to reset relative positioning (otherwise absolute size won't work)
+        grid = GameGrid(size_hint=(None, None), size=(600, 600), handler=GridEventHandler())
+        game_view = GameView(name='GameView', grid=grid)
         gameover_view = GameOverView(name='GameOverView')
 
         self.sm = SnakeScreenManager(title_view, game_view, gameover_view)
@@ -97,8 +99,11 @@ class TitleView(Screen):
 
 class GameView(Screen): #TODO -- give this boy a direct reference to its GameGrid (probably through an objprop)
     '''Screen where the game actually takes place. Handles keyboard input from the user.'''
-    def __init__(self, **kwargs):
+    def __init__(self, grid, **kwargs):
         super().__init__(**kwargs)
+        self.grid = grid
+        #Add the grid to the AnchorLayout defined in kvlang
+        self.ids.anchor.add_widget(self.grid)
         #Only request the keyboard when we navigate into this view. 
         self.bind(on_pre_enter=self.get_keyboard) 
         self.bind(on_pre_leave=self._keyboard_closed)
@@ -125,9 +130,16 @@ class GameView(Screen): #TODO -- give this boy a direct reference to its GameGri
 class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
 
-class GameEventHandler(EventDispatcher): #For defining custom events
+
+class GridEventHandler(EventDispatcher): #For defining custom events
     def __init__(self, **kwargs):
-        pass
+
+        super().__init__(**kwargs) #TODO find out if this is neccesary
+        self.register_event_type('on_segments_updated')
+
+    def on_segments_updated(self, *args):
+        print('event fired')
+
 
 
 
@@ -137,20 +149,26 @@ class GameGrid(GridLayout):
 
     segments = ListProperty() #Whenever food is eaten, fire event to update this and model
 
-    def __init__(self, **kwargs):
+    def __init__(self, handler, **kwargs):
         super().__init__(**kwargs)
+        self.handler = handler
         self.rows = 10
         self.cols = 10
+
         #Add cells to the board
         for i in range(self.rows*self.cols):
             self.add_widget(self.create_cell())
         
-
+        #Initialize the snake
         self.segments = [51, 52, 53]
         
 
     def create_cell(self): 
         return GridCell()
+    
+    def notify(self, callback):
+        print('notifying')
+        self.handler.bind(on_segments_updated=callback)
 
     
     def on_segments(self, instance, new_segments): 
@@ -163,7 +181,10 @@ class GameGrid(GridLayout):
         border = (145/255, 174/255, 193/255)
         for i in new_segments:
             cells[i].draw_cell(rect, border)
-
+        
+        self.handler.dispatch('on_segments_updated')
+        
+        
         #TODO Fire the event from the controller here to update the model
                     
 

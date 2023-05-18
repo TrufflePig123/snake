@@ -25,7 +25,7 @@ class Snake:
     def __init__(self):
         self.head_pos = 0
         self.direction = 'D'
-        self._segments = [32, 33, 34]
+        self._segments = [51, 52, 53]
     
     @property #These properties mostly for testin'
     def segments(self):
@@ -34,4 +34,4 @@ class Snake:
     @segments.setter
     def segments(self, value):
         self._segments = value
-        print(f'Segments set to new value: {value}')
+        print(f'Model setter called:  {value}')

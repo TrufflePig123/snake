@@ -11,6 +11,10 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen , ScreenManager, NoTransition
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+import logging
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 class SnakeApp(App):
     '''Kivy base application class. Initalizes the model, view, and controller during application startup. Acts as application entry point.
@@ -167,22 +171,31 @@ class GameGrid(GridLayout):
         return GridCell()
     
     def notify(self, callback):
-        print('notifying')
-        self.handler.bind(on_segments_updated=callback)
+        #print(f'Callback: {callback}')
+        cb = callback
+        self.handler.bind(on_segments_updated=cb) #BUG Callilng dispatch here works for some reason, but not 
+        #self.handler.dispatch('on_segments_updated')
+        #self.handler.bind(on_segments_updated=self.test)
+        
+
+    def test(self):
+        self.handler.dispatch('on_segments_updated')
 
     
     def on_segments(self, instance, new_segments): 
         '''What happens when segments added'''
         print(f'New segment at {new_segments}') # Testing statement
         cells = self.children[::-1]
-        #print(cells)
 
         rect = (10/255, 135/255, 84/255)
         border = (145/255, 174/255, 193/255)
         for i in new_segments:
             cells[i].draw_cell(rect, border)
         
-        self.handler.dispatch('on_segments_updated')
+
+        #print(self.handler.get_property_observers('on_segments_updated', args=True)) #BUG, for some reason, the function isnt getting binded to the event, hence why dispatch does nothing
+        #LOGGER.debug(f'Attached callbacks: {evlist}') #BUG Solution might be here https://kivy.org/doc/stable/api-kivy.event.html.. look at weakref section
+        self.handler.dispatch('on_segments_updated') #BUG What we probably need to do here is create direct references to the controller via the app class, rather than relying onthe EventDispatcher.. but might be hard to work in
         
         
         #TODO Fire the event from the controller here to update the model

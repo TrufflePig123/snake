@@ -1,4 +1,8 @@
 #TODO -- controller stuff here
+import logging
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 class Controller: #might want to create different classes for different controllers, for now, im just gonna have one for the whole app, b/c the only screen that really needs it is #2
     def __init__(self, title_view, game_view, gameover_view, model):
@@ -14,7 +18,6 @@ class Controller: #might want to create different classes for different controll
 
     def update_segments(self, value): #We want to update the model segments in here, binded to some sort of event in kv
         self.model.set_segments(value) #Placeholder value
-        print('called')
 
     def update_snake(self): #We want to notify the view of the new segments her
         segments = self.model.get_segments()

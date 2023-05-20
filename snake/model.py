@@ -35,3 +35,4 @@ class Snake:
     def segments(self, value):
         self._segments = value
         print(f'Model setter called:  {value}')
+        print(self._segments)

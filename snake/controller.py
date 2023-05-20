@@ -11,14 +11,16 @@ class Controller: #might want to create different classes for different controll
         self.gameover_view = gameover_view
         self.model = model
 
-        self.game_view.grid.notify(self.update_segments)
-        #self.game_view.grid.handler.bind(on_segments_updated=self.update_segments)
+        handler = self.game_view.grid.handler
+        #Bound callbacks are stored as weak references in kv, making them open to garbage collection without a direct reference to the function object.
+        #Without a reference, calling dispatch() in this method fires the model setter, but calling dipatch elsewhere the application does nothing (b/c the callback was garbage collected)
+        #See https://kivy.org/doc/stable/api-kivy.event.html
+        handler.callbacks.append(self.update_segments)
+        handler.bind(on_segments_updated=self.update_segments)
 
 
+    def update_segments(self, instance): 
+        segments = self.game_view.grid.get_segments()
+        self.model.set_segments(segments) 
 
-    def update_segments(self, value): #We want to update the model segments in here, binded to some sort of event in kv
-        self.model.set_segments(value) #Placeholder value
-
-    def update_snake(self): #We want to notify the view of the new segments her
-        segments = self.model.get_segments()
-        self.game_view.segments = segments
+   

@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 class SnakeApp(App):
-    '''Kivy base application class. Initalizes the model, view, and controller during application startup. Acts as application entry point.
+    '''Kivy base application class. Initalizes the model, views, and controller during application startup. Acts as application entry point.
 
     Attributes
     ----------
@@ -101,7 +101,7 @@ class TitleView(Screen):
     '''Starting screen of the application; first screen the user interacts with. Contains buttons to start the game and exit the application.'''
 
 
-class GameView(Screen): #TODO -- give this boy a direct reference to its GameGrid (probably through an objprop)
+class GameView(Screen): 
     '''Screen where the game actually takes place. Handles keyboard input from the user.'''
     def __init__(self, grid, **kwargs):
         super().__init__(**kwargs)
@@ -116,7 +116,7 @@ class GameView(Screen): #TODO -- give this boy a direct reference to its GameGri
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
-    def _keyboard_closed(self, instance=None):
+    def _keyboard_closed(self, instance=None): #Todo -- doc why instance is none
         '''Removes the keyboard upon exiting the application or the GameView screen.
         Params:
         -------
@@ -135,16 +135,17 @@ class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
 
 
-class GridEventHandler(EventDispatcher): #For defining custom events
+class GridEventHandler(EventDispatcher): 
+    '''Defines and handles custom events for the GameGrid.'''
     def __init__(self, **kwargs):
+        super().__init__(**kwargs) 
+        self.callbacks = []
 
-        super().__init__(**kwargs) #TODO find out if this is neccesary
         self.register_event_type('on_segments_updated')
 
     def on_segments_updated(self, *args):
-        print('event fired')
-
-
+        #print('event fired')
+        pass
 
 
 class GameGrid(GridLayout): 
@@ -165,22 +166,12 @@ class GameGrid(GridLayout):
         
         #Initialize the snake
         self.segments = [51, 52, 53]
-        
 
     def create_cell(self): 
-        return GridCell()
+        return GridCell() #Violates DI, unfortunately
     
-    def notify(self, callback):
-        #print(f'Callback: {callback}')
-        cb = callback
-        self.handler.bind(on_segments_updated=cb) #BUG Callilng dispatch here works for some reason, but not 
-        #self.handler.dispatch('on_segments_updated')
-        #self.handler.bind(on_segments_updated=self.test)
-        
-
-    def test(self):
-        self.handler.dispatch('on_segments_updated')
-
+    def get_segments(self):
+        return self.segments
     
     def on_segments(self, instance, new_segments): 
         '''What happens when segments added'''
@@ -192,13 +183,7 @@ class GameGrid(GridLayout):
         for i in new_segments:
             cells[i].draw_cell(rect, border)
         
-
-        #print(self.handler.get_property_observers('on_segments_updated', args=True)) #BUG, for some reason, the function isnt getting binded to the event, hence why dispatch does nothing
-        #LOGGER.debug(f'Attached callbacks: {evlist}') #BUG Solution might be here https://kivy.org/doc/stable/api-kivy.event.html.. look at weakref section
-        self.handler.dispatch('on_segments_updated') #BUG What we probably need to do here is create direct references to the controller via the app class, rather than relying onthe EventDispatcher.. but might be hard to work in
-        
-        
-        #TODO Fire the event from the controller here to update the model
+        self.handler.dispatch('on_segments_updated') 
                     
 
 class GridCell(Widget):
@@ -226,7 +211,6 @@ class GridCell(Widget):
             Color(r, g, b) # TODO -- fix color
             self.border = Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
         
-
     def update_rect(self, instance, value):
         '''Method to ensure that the drawn rectangle + border reacts to changes in size and position. Code stolen from https://kivy.org/doc/stable/guide/widgets.html#adding-widget-background
         

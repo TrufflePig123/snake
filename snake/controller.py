@@ -1,5 +1,6 @@
 #TODO -- controller stuff here
 import logging
+from kivy.clock import Clock
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -17,7 +18,22 @@ class Controller: #might want to create different classes for different controll
         #See https://kivy.org/doc/stable/api-kivy.event.html
         handler.callbacks.append(self.update_segments)
         handler.bind(on_segments_updated=self.update_segments)
+        handler.callbacks.append(self.set_direction) # Could probably condense these appends
+        handler.bind(on_key_pressed=self.set_direction)
+        handler.callbacks.append(self.start_game)
+        handler.bind(on_key_first_pressed=self.start_game)
 
+
+
+    def start_game(self, instance):
+        self.model.start_game()
+        print('Bad!')
+        handler = self.game_view.grid.handler
+        handler.unbind(on_key_first_pressed=None) #BUG -- thing isnt unbinding itself
+        #handler.callbacks.remove(self.start_game)
+
+    def set_direction(self, instance, key):
+        self.model.set_direction(key)
 
     def update_segments(self, instance): 
         segments = self.game_view.grid.get_segments()

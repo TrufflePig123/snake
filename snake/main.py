@@ -1,6 +1,7 @@
 from controller import Controller
 from model import Model, Game, Snake
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.graphics import Color, Rectangle, Line
 from kivy.properties import ListProperty
@@ -128,8 +129,13 @@ class GameView(Screen):
             self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        print(f"The key {text} was pressed") #dummy testing code for now
-    
+        #Kivy docs: "The function collects all the positional and keyword arguments and passes them on to the handlers."
+        #See https://kivy.org/doc/stable/api-kivy.event.html for more info
+        handler = self.grid.handler
+        handler.dispatch('on_key_first_pressed')
+        handler.dispatch('on_key_pressed', text)
+
+
 
 class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
@@ -142,9 +148,16 @@ class GridEventHandler(EventDispatcher):
         self.callbacks = []
 
         self.register_event_type('on_segments_updated')
+        self.register_event_type('on_key_first_pressed')
+        self.register_event_type('on_key_pressed')
 
     def on_segments_updated(self, *args):
-        #print('event fired')
+        pass
+
+    def on_key_first_pressed(self, *args): #Fires only after the key is pressed for the first time, and no more after that.
+        pass
+    
+    def on_key_pressed(self, *args):
         pass
 
 
@@ -175,15 +188,15 @@ class GameGrid(GridLayout):
     
     def on_segments(self, instance, new_segments): 
         '''What happens when segments added'''
-        print(f'New segment at {new_segments}') # Testing statement
-        cells = self.children[::-1]
+        #print(f'New segment at {new_segments}') # Testing statement
+        cells = self.children[::-1] #TODO = Add explination for reversing list here
 
         rect = (10/255, 135/255, 84/255)
         border = (145/255, 174/255, 193/255)
         for i in new_segments:
             cells[i].draw_cell(rect, border)
         
-        self.handler.dispatch('on_segments_updated') 
+        self.handler.dispatch('on_segments_updated') #TODO This could just bind to the on segments property, but idrk
                     
 
 class GridCell(Widget):
@@ -227,7 +240,7 @@ class GridCell(Widget):
         instance.rect.size = instance.size
 
         instance.border.rectangle = (self.x, self.y, self.width, self.height)
-    
+
 
 #Can't place a direct call to main here. For the class rules defined in kv to reflect on the screens,
 #The screen objects need to be instantiated once (and only once) the application loop is already running.

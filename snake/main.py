@@ -132,7 +132,12 @@ class GameView(Screen):
         #Kivy docs: "The function collects all the positional and keyword arguments and passes them on to the handlers."
         #See https://kivy.org/doc/stable/api-kivy.event.html for more info
         handler = self.grid.handler
-        handler.dispatch('on_key_first_pressed')
+        try:
+            handler.dispatch('on_key_first_pressed')
+        except KeyError:
+            pass
+            #Bad practice? Explain her
+
         handler.dispatch('on_key_pressed', text)
 
 
@@ -150,14 +155,25 @@ class GridEventHandler(EventDispatcher):
         self.register_event_type('on_segments_updated')
         self.register_event_type('on_key_first_pressed')
         self.register_event_type('on_key_pressed')
+        self.register_event_type('on_move')
 
     def on_segments_updated(self, *args):
         pass
 
     def on_key_first_pressed(self, *args): #Fires only after the key is pressed for the first time, and no more after that.
-        pass
+        Clock.schedule_interval(self.dispatch_game_events, 0.5)
+        self.unregister_event_type('on_key_first_pressed') #BUG -- when the user LOSES... this is permanently unbinded, so this should really be a trigger so it calls once, but can be reused later
+        #TODO This might be better modeled by binding this fn to a trigger (or something that calls once), rather than this hackish solution
+        
+        
     
     def on_key_pressed(self, *args):
+        pass
+    
+    def dispatch_game_events(self, dt): #FIXME -- this is named kinda badly
+        self.dispatch('on_move')
+    
+    def on_move(self, *args):
         pass
 
 
@@ -186,17 +202,30 @@ class GameGrid(GridLayout):
     def get_segments(self):
         return self.segments
     
+    def set_segments(self, segments):
+        self.segments = segments
+    
+    def remove_segment(self, index):
+        '''Restores the given cell to its graphical default, removing any drawn segments or food.'''
+        cells = self.children[::-1]
+        rect = (80/255, 140/255, 164/255)
+        border = (145/255, 174/255, 193/255)
+        #Calling draw cell here, but passing in the default colors.
+        cells[index].draw_cell(rect, border)
+
     def on_segments(self, instance, new_segments): 
-        '''What happens when segments added'''
+        '''Draws new segments on the grid whenever the segments property is modified.'''
         #print(f'New segment at {new_segments}') # Testing statement
         cells = self.children[::-1] #TODO = Add explination for reversing list here
 
         rect = (10/255, 135/255, 84/255)
         border = (145/255, 174/255, 193/255)
+
         for i in new_segments:
             cells[i].draw_cell(rect, border)
-        
+
         self.handler.dispatch('on_segments_updated') #TODO This could just bind to the on segments property, but idrk
+        
                     
 
 class GridCell(Widget):
@@ -211,7 +240,7 @@ class GridCell(Widget):
         self.bind(pos=self.update_rect, size=self.update_rect)
     
     def draw_cell(self, rect_rgb, border_rgb):
-        #Before we draw, get rid of any double-draw mistakes by clearing hte canvas.
+        #Before we draw, get rid of any double-draw mistakes by clearing the canvas.
         self.canvas.clear()
 
         r, g, b = rect_rgb
@@ -223,7 +252,7 @@ class GridCell(Widget):
         with self.canvas:
             Color(r, g, b) # TODO -- fix color
             self.border = Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
-        
+
     def update_rect(self, instance, value):
         '''Method to ensure that the drawn rectangle + border reacts to changes in size and position. Code stolen from https://kivy.org/doc/stable/guide/widgets.html#adding-widget-background
         

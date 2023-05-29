@@ -20,22 +20,24 @@ class Controller: #might want to create different classes for different controll
         handler.bind(on_segments_updated=self.update_segments)
         handler.callbacks.append(self.set_direction) # Could probably condense these appends
         handler.bind(on_key_pressed=self.set_direction)
-        handler.callbacks.append(self.start_game)
-        handler.bind(on_key_first_pressed=self.start_game)
+        handler.callbacks.append(self.update_segment_positions)
+        handler.bind(on_move=self.update_segment_positions)
+    
+    def update_segment_positions(self, instance):
+        '''Passes the value of the post-movement snake segments to the GameView.'''
+        self.model.move_segments()
+        segments = self.model.get_segments()
+        self.game_view.grid.set_segments(segments)
 
-
-
-    def start_game(self, instance):
-        self.model.start_game()
-        print('Bad!')
-        handler = self.game_view.grid.handler
-        handler.unbind(on_key_first_pressed=None) #BUG -- thing isnt unbinding itself
-        #handler.callbacks.remove(self.start_game)
-
+        lastpos = self.model.get_last_tail_pos()
+        self.game_view.grid.remove_segment(lastpos)
+    
     def set_direction(self, instance, key):
         self.model.set_direction(key)
 
-    def update_segments(self, instance): 
+
+    #Old thing, check
+    def update_segments(self, instance): #FIXME This should take from model and put into view
         segments = self.game_view.grid.get_segments()
         self.model.set_segments(segments) 
 

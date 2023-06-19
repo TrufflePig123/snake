@@ -33,6 +33,9 @@ class Model:
 
     def get_last_tail_pos(self):
         return self.snake.last_tail_pos
+    
+    def get_direction(self):
+        return self.snake.direction
 
     def set_direction(self, direction):
         self.snake.direction = direction
@@ -45,9 +48,36 @@ class Game:
     def __init__(self): 
         self.score = 0
         self.game_started = False
-    
+        
+    def set_game_state(self, value):
+        self.game_started = value
+
     def get_game_state(self):
         return self.game_started
+    
+    def check_collision(self, segments, direction):
+        #'Neck' here refers to the second segment (right next to the head).
+        headpos, neckpos = abs(segments[-1]), abs(segments[-2])
+
+        #Break if the 2 segments are in the same position
+        if len(segments) != len(set(segments)): 
+            print('\033[91m' + 'Break Game!' + '\033[0m')
+            return True
+        #As the snake moves up, its given position in the is decreaseing. 
+        #So the only way the head's position can suddenly increase is if it hits the top and circles back around (which would be a loss).
+        if direction == 'w' and headpos < neckpos: #Dirty, could def simplify with DRY
+            return 
+        elif direction == 's' and headpos > neckpos: #FIXME -- indexerror occurs before the text prints...
+            return 
+        #The Grid's first row goes from 0-9, the second from 10-19, etc. So if the snake is moving right (direction = 'd')
+        #The snake's head cannot reach the first column of the board with ids ending in 0. If it does, then it's a collision.
+        elif direction == 'd' and  headpos % 10 != 0: #These ifs are a crime against humanity, but it izz what it izz
+            return 
+        elif direction == 'a' and  headpos % 10 != 0:
+            return
+        else:
+            print('\033[91m' + 'Break Game!' + '\033[0m')
+            return True
 
 
 class Snake:
@@ -55,7 +85,6 @@ class Snake:
         self._head_pos = 0
         self._direction = 'd'
         self._segments = [51, 52, 53]
-        self.last_tail_pos = 0
     
     @property
     def direction(self): #This prop is actually useful
@@ -78,7 +107,7 @@ class Snake:
             return
         
         self._direction = value
-        print(f'Valid key called in setter: {value}')
+        #print(f'Valid key called in setter: {value}')
 
 
 
@@ -89,5 +118,5 @@ class Snake:
     @segments.setter
     def segments(self, value):
         self._segments = value
-        print(f'Model setter called:  {value}')
+        #print(f'Model setter called:  {value}')
         #print(self._segments)

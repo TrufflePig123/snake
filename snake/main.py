@@ -43,7 +43,7 @@ class SnakeApp(App):
         '''Instantiates both the model and the controller using the views created in the setup_views method.'''
         sm = self.sm
         model = Model(Game(), Snake())
-        controller = Controller(sm.title, sm.game_view, sm.gameover_view, model)
+        controller = Controller(sm, model)
        
     def setup_views(self):
         '''Creates instances of each of the application screens (as well as relevant widgets) and of the application screenmanager.'''
@@ -132,12 +132,8 @@ class GameView(Screen):
         #Kivy docs: "The function collects all the positional and keyword arguments and passes them on to the handlers."
         #See https://kivy.org/doc/stable/api-kivy.event.html for more info
         handler = self.grid.handler
-        try:
-            handler.dispatch('on_key_first_pressed')
-        except KeyError:
-            pass
-            #Bad practice? Explain her
-
+        
+        handler.dispatch('on_key_first_pressed')
         handler.dispatch('on_key_pressed', text)
 
 
@@ -152,28 +148,33 @@ class GridEventHandler(EventDispatcher):
         super().__init__(**kwargs) 
         self.callbacks = []
 
+        self.clock_cycle = None
         self.register_event_type('on_segments_updated')
         self.register_event_type('on_key_first_pressed')
         self.register_event_type('on_key_pressed')
         self.register_event_type('on_move')
+        self.register_event_type('on_loss')
 
     def on_segments_updated(self, *args):
         pass
 
     def on_key_first_pressed(self, *args): #Fires only after the key is pressed for the first time, and no more after that.
-        Clock.schedule_interval(self.dispatch_game_events, 0.5)
-        self.unregister_event_type('on_key_first_pressed') #BUG -- when the user LOSES... this is permanently unbinded, so this should really be a trigger so it calls once, but can be reused later
+        pass
+        #self.clock_cycle = Clock.schedule_interval(self.dispatch_game_events, 0.5)
+        #self.unregister_event_type('on_key_first_pressed') #BUG -- when the user LOSES... this is permanently unbinded, so this should really be a trigger so it calls once, but can be reused later
         #TODO This might be better modeled by binding this fn to a trigger (or something that calls once), rather than this hackish solution
-        
-        
     
     def on_key_pressed(self, *args):
         pass
     
     def dispatch_game_events(self, dt): #FIXME -- this is named kinda badly
+        '''Acts as the main loop for a variety of game events. Repeatedly dispatches events for movement and collisons.'''
         self.dispatch('on_move')
     
     def on_move(self, *args):
+        pass
+
+    def on_loss(self, *args):
         pass
 
 
@@ -194,7 +195,7 @@ class GameGrid(GridLayout):
             self.add_widget(self.create_cell())
         
         #Initialize the snake
-        self.segments = [51, 52, 53]
+        self.segments = [51, 52, 53]#TODO-- change me back to 3, and in the model too
 
     def create_cell(self): 
         return GridCell() #Violates DI, unfortunately

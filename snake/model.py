@@ -1,3 +1,5 @@
+import random as r
+
 class Model:
     def __init__(self, game, snake):
         self.game = game
@@ -6,7 +8,6 @@ class Model:
     def move_segments(self):
         direction = self.snake._direction
         segments = self.snake._segments
-        
 
         headpos = segments[-1]
         #Remove the former tail position (but save its value)
@@ -24,6 +25,37 @@ class Model:
         
         
         print(f'Current direction: {direction}; Segments list: {segments}')
+
+    def check_collision(self, segments, direction):
+        #'Neck' here refers to the second segment (right next to the head).
+        headpos, neckpos = abs(segments[-1]), abs(segments[-2])
+
+        #Break if the 2 segments are in the same position
+        if len(segments) != len(set(segments)): 
+            print('\033[91m' + 'Break Game!' + '\033[0m')
+            return True
+        #As the snake moves up, its given position in the is decreasing. 
+        #So the only way the head's position can suddenly increase is if it hits the top and circles back around (which would be a loss).
+        if direction == 'w' and headpos < neckpos: #Dirty, could def simplify with DRY
+            return 
+        elif direction == 's' and headpos > neckpos: 
+            return 
+        #The Grid's first row goes from 0-9, the second from 10-19, etc. So if the snake is moving right (direction = 'd')
+        #The snake's head cannot reach the first column of the board with ids ending in 0. If it does, then it's a collision.
+        elif direction == 'd' and  headpos % 10 != 0: #These ifs are a crime against humanity, but it izz what it izz #FIXME, im lazy, but it might be better to extract thr rows and cols from the view here
+            return 
+        elif direction == 'a' and  headpos % 10 != 9: #Opposite direction, so here going from say, 20 to 19 is the red flag
+            return
+        else:
+            print('\033[91m' + 'Break Game!' + '\033[0m')
+            return True
+        
+    def get_valid_fruit_pos(self, grid_size):
+        segments = set(self.snake.segments) #Def a better way to do this, but idc
+        all_positions = set(range(grid_size))
+        valid_spawns = all_positions.difference(segments)
+        
+        return r.choice(list(valid_spawns))
 
     def get_segments(self):
         return self.snake.segments
@@ -55,29 +87,7 @@ class Game:
     def get_game_state(self):
         return self.game_started
     
-    def check_collision(self, segments, direction):
-        #'Neck' here refers to the second segment (right next to the head).
-        headpos, neckpos = abs(segments[-1]), abs(segments[-2])
-
-        #Break if the 2 segments are in the same position
-        if len(segments) != len(set(segments)): 
-            print('\033[91m' + 'Break Game!' + '\033[0m')
-            return True
-        #As the snake moves up, its given position in the is decreaseing. 
-        #So the only way the head's position can suddenly increase is if it hits the top and circles back around (which would be a loss).
-        if direction == 'w' and headpos < neckpos: #Dirty, could def simplify with DRY
-            return 
-        elif direction == 's' and headpos > neckpos: #FIXME -- indexerror occurs before the text prints...
-            return 
-        #The Grid's first row goes from 0-9, the second from 10-19, etc. So if the snake is moving right (direction = 'd')
-        #The snake's head cannot reach the first column of the board with ids ending in 0. If it does, then it's a collision.
-        elif direction == 'd' and  headpos % 10 != 0: #These ifs are a crime against humanity, but it izz what it izz
-            return 
-        elif direction == 'a' and  headpos % 10 != 0:
-            return
-        else:
-            print('\033[91m' + 'Break Game!' + '\033[0m')
-            return True
+    
 
 
 class Snake:

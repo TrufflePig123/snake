@@ -153,6 +153,7 @@ class GridEventHandler(EventDispatcher):
         self.register_event_type('on_key_first_pressed')
         self.register_event_type('on_key_pressed')
         self.register_event_type('on_move')
+        self.register_event_type('on_fruit_eaten')
         self.register_event_type('on_loss')
 
     def on_segments_updated(self, *args):
@@ -172,6 +173,9 @@ class GridEventHandler(EventDispatcher):
         self.dispatch('on_move')
     
     def on_move(self, *args):
+        pass
+
+    def on_fruit_eaten(self, *args):
         pass
 
     def on_loss(self, *args):
@@ -206,6 +210,13 @@ class GameGrid(GridLayout):
     def set_segments(self, segments):
         self.segments = segments
     
+    def draw_fruit(self, index):
+        cells = self.children[::-1]
+
+        rect = (220/255, 62/255, 29/255)
+        border = (145/255, 174/255, 193/255)
+        cells[index].draw_cell(rect, border)
+
     def remove_segment(self, index):
         '''Restores the given cell to its graphical default, removing any drawn segments or food.'''
         cells = self.children[::-1]
@@ -213,6 +224,7 @@ class GameGrid(GridLayout):
         border = (145/255, 174/255, 193/255)
         #Calling draw cell here, but passing in the default colors.
         cells[index].draw_cell(rect, border)
+
 
     def on_segments(self, instance, new_segments): 
         '''Draws new segments on the grid whenever the segments property is modified.'''
@@ -223,7 +235,12 @@ class GameGrid(GridLayout):
         border = (145/255, 174/255, 193/255)
 
         for i in new_segments:
+            #Counts as a collision if the snake is trying to leave the max allowed dimenstions
+            if i > self.rows*self.cols:
+                self.handler.dispatch('on_loss')
+                break
             cells[i].draw_cell(rect, border)
+           
 
         self.handler.dispatch('on_segments_updated') #TODO This could just bind to the on segments property, but idrk
         

@@ -21,19 +21,19 @@ class Controller: #might want to create different classes for different controll
         #Because the user is constantly changing direction, we need to make sure we check for collisions only in the instant, with as little delays as possible.
         handler.bind(on_move=self.check_collision)
         handler.bind(on_move=self.check_fruit_eaten)
-        handler.bind(on_move=self.update_segment_positions)
+        handler.bind(on_move=self.update_segment_positions) #TODO: for the future, please cut down on these events,  
         handler.bind(on_loss=self.reset_on_loss)
         handler.bind(on_loss=self.change_view_on_loss)
 
-        
+        handler.bind(on_fruit_eaten=self.update_score)
         handler.bind(on_fruit_eaten=self.add_snake_segment)
-        handler.bind(on_fruit_eaten=self.spawn_fruit) #TODO -- temp
+        handler.bind(on_fruit_eaten=self.spawn_fruit) 
        
         #Bound callbacks are stored as weak references in kv, making them open to garbage collection without a direct reference to the function objects.
         #Storing them in a list counts as a reference, so the events trigger as normal.
         #See https://kivy.org/doc/stable/api-kivy.event.html
         cbs = [self.add_snake_segment, self.check_collision, self.check_fruit_eaten, self.spawn_fruit, self.change_view_on_loss, self.reset_on_loss, self.update_segment_positions, 
-               self.set_direction, self.start_movement_loop, self.update_segments]
+               self.set_direction, self.start_movement_loop, self.update_score, self.update_segments]
 
         handler.callbacks.extend(cbs)
     
@@ -45,8 +45,7 @@ class Controller: #might want to create different classes for different controll
 
         if not game_started:
             self.spawn_fruit()
-            print(self.model.get_segments())
-            handler.clock_cycle = Clock.schedule_interval(handler.dispatch_game_events, 0.4)
+            handler.clock_cycle = Clock.schedule_interval(handler.dispatch_game_events, 0.2)
             self.model.game.set_game_state(True)
         
     def update_segment_positions(self, instance):
@@ -76,18 +75,20 @@ class Controller: #might want to create different classes for different controll
 
         #If the head touches the fruit
         if fruitpos == segments[-1]:
-            print('fruit eaten')
             self.game_view.grid.handler.dispatch('on_fruit_eaten')
-            
 
+    def update_score(self, instance):
+        self.model.add_score() #might be better somewhere else but whatev
+        score = self.model.get_score()
+        self.game_view.counter.set_score(score)
+
+            
     def add_snake_segment(self, instance):
         segments = self.model.get_segments()
         new_segment = self.model.get_new_segment_pos()
 
-        #segments.insert(0, new_segment)
-        #self.model.set_segments(segments)
-        
-        
+        segments.insert(0, new_segment)
+        self.model.set_segments(segments)
 
     def check_collision(self, instance):
         '''Checks to see if the current snake position would classify as a collision, either with the grid boundary or with itself.'''
@@ -99,6 +100,8 @@ class Controller: #might want to create different classes for different controll
             self.game_view.grid.handler.dispatch('on_loss')
 
     def change_view_on_loss(self, instance):
+        score = self.model.get_score()
+        self.gameover_view.set_score(score)
         self.sm.current = 'GameOverView'
         
 

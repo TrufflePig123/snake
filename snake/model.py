@@ -51,7 +51,7 @@ class Model:
             return True
         
     def get_valid_fruit_pos(self, grid_size):
-        segments = set(self.snake.segments) #Def a better way to do this, but idc
+        segments = set(self.snake._segments) #Def a better way to do this, but idc
         all_positions = set(range(grid_size))
         valid_spawns = all_positions.difference(segments)
 
@@ -61,7 +61,7 @@ class Model:
         return fruitpos
     
     def get_new_segment_pos(self):
-        segments = self.snake.segments
+        segments = self.snake._segments
         tail = segments[0]
         second_to_last = segments [1]
 
@@ -74,12 +74,17 @@ class Model:
         elif second_to_last - tail == -1:
             return tail + 1
     
+    def add_score(self):
+        self.game.score += 1
+
+    def get_score(self):
+        return self.game.score
 
     def get_segments(self):
-        return self.snake.segments
+        return self.snake._segments
     
     def set_segments(self, segments):
-        self.snake.segments = segments
+        self.snake._segments = segments
 
     def get_last_tail_pos(self):
         return self.snake.last_tail_pos
@@ -105,8 +110,6 @@ class Game:
         self.game_started = False
         self.fruit_pos = None
         
-    
-
     def get_game_state(self):
         return self.game_started
     
@@ -143,16 +146,4 @@ class Snake:
             return
         
         self._direction = value
-        #print(f'Valid key called in setter: {value}')
 
-
-
-    @property #This prop mostly for testing
-    def segments(self):
-        return self._segments
-    
-    @segments.setter
-    def segments(self, value):
-        self._segments = value
-        #print(f'Model setter called:  {value}')
-        #print(self._segments)

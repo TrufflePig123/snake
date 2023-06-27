@@ -4,9 +4,10 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.graphics import Color, Rectangle, Line
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, StringProperty, NumericProperty
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen , ScreenManager, NoTransition
@@ -50,7 +51,7 @@ class SnakeApp(App):
         title_view = TitleView(name='TitleView')
         #Setting size_hint to None to reset relative positioning (otherwise absolute size won't work)
         grid = GameGrid(size_hint=(None, None), size=(600, 600), handler=GridEventHandler())
-        game_view = GameView(name='GameView', grid=grid)
+        game_view = GameView(name='GameView', grid=grid, counter=ScoreCounter())
         gameover_view = GameOverView(name='GameOverView')
 
         self.sm = SnakeScreenManager(title_view, game_view, gameover_view)
@@ -104,9 +105,10 @@ class TitleView(Screen):
 
 class GameView(Screen): 
     '''Screen where the game actually takes place. Handles keyboard input from the user.'''
-    def __init__(self, grid, **kwargs):
+    def __init__(self, grid, counter, **kwargs):
         super().__init__(**kwargs)
         self.grid = grid
+        self.counter = self.ids.counter #TODO: Not a todo, but bruh i couldv'e been doing this the entire time and not worrying about passing in the obj directly
         #Add the grid to the AnchorLayout defined in kvlang
         self.ids.anchor.add_widget(self.grid)
         #Only request the keyboard when we navigate into this view. 
@@ -140,7 +142,24 @@ class GameView(Screen):
 
 class GameOverView(Screen):
     '''Screen that appears upon a loss. Displays the user's total score and prompts them to either return to the menu or play again.'''
+    score = StringProperty('Score was: 0')
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.score_label = self.ids.score_label #A little lazy, but by now idc
+        self.score_label.text = self.score
+    
+    def set_score(self, score):
+        self.score_label.text = f"You lose. Your final score was: {score}"
 
+class ScoreCounter(Label):
+    score = StringProperty('Score: 0')
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.text = self.score
+
+    def set_score(self, score):
+        '''Function accessed by the controller to set the counter value.''' 
+        self.text = f'Score: {str(score)}'
 
 class GridEventHandler(EventDispatcher): 
     '''Defines and handles custom events for the GameGrid.'''
@@ -181,12 +200,11 @@ class GridEventHandler(EventDispatcher):
     def on_loss(self, *args):
         pass
 
-
 class GameGrid(GridLayout): 
     '''Represents the main board where the game wil be played. Displays key information about the game, such as
     location of the snake and location of food.''' #finish docs bc yk
 
-    segments = ListProperty() #Whenever food is eaten, fire event to update this and model
+    segments = ListProperty() #Whenever food is eaten/ snake moves, fire event to update this and model
 
     def __init__(self, handler, **kwargs):
         super().__init__(**kwargs)
@@ -228,7 +246,6 @@ class GameGrid(GridLayout):
 
     def on_segments(self, instance, new_segments): 
         '''Draws new segments on the grid whenever the segments property is modified.'''
-        #print(f'New segment at {new_segments}') # Testing statement
         cells = self.children[::-1] #TODO = Add explination for reversing list here
 
         rect = (10/255, 135/255, 84/255)
@@ -292,5 +309,6 @@ class GridCell(Widget):
 #Can't place a direct call to main here. For the class rules defined in kv to reflect on the screens,
 #The screen objects need to be instantiated once (and only once) the application loop is already running.
 if __name__ == '__main__':
+    Window.fullscreen = 'auto'
     SnakeApp().run()
     

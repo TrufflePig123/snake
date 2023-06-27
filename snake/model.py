@@ -54,8 +54,26 @@ class Model:
         segments = set(self.snake.segments) #Def a better way to do this, but idc
         all_positions = set(range(grid_size))
         valid_spawns = all_positions.difference(segments)
+
+        fruitpos = r.choice(list(valid_spawns))
+        self.set_fruit_pos(fruitpos)
         
-        return r.choice(list(valid_spawns))
+        return fruitpos
+    
+    def get_new_segment_pos(self):
+        segments = self.snake.segments
+        tail = segments[0]
+        second_to_last = segments [1]
+
+        if second_to_last - tail == 10:
+            return tail - 10
+        elif second_to_last - tail == -10:
+            return tail + 10
+        elif second_to_last - tail == 1:
+            return tail - 1
+        elif second_to_last - tail == -1:
+            return tail + 1
+    
 
     def get_segments(self):
         return self.snake.segments
@@ -72,6 +90,11 @@ class Model:
     def set_direction(self, direction):
         self.snake.direction = direction
 
+    def get_fruit_pos(self):
+        return self.game.fruit_pos
+    
+    def set_fruit_pos(self, pos):
+        self.game.fruit_pos = pos
     
 
 #------Data classes begin here------
@@ -80,12 +103,15 @@ class Game:
     def __init__(self): 
         self.score = 0
         self.game_started = False
+        self.fruit_pos = None
         
-    def set_game_state(self, value):
-        self.game_started = value
+    
 
     def get_game_state(self):
         return self.game_started
+    
+    def set_game_state(self, value):
+        self.game_started = value
     
     
 

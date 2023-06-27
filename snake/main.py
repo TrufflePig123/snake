@@ -217,7 +217,7 @@ class GameGrid(GridLayout):
         border = (145/255, 174/255, 193/255)
         cells[index].draw_cell(rect, border)
 
-    def remove_segment(self, index):
+    def remove_segment(self, index): #Naming kinda bad, but whatevah
         '''Restores the given cell to its graphical default, removing any drawn segments or food.'''
         cells = self.children[::-1]
         rect = (80/255, 140/255, 164/255)

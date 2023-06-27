@@ -22,8 +22,9 @@ class Controller: #might want to create different classes for different controll
         handler.bind(on_move=self.check_collision)
         handler.bind(on_move=self.check_fruit_eaten)
         handler.bind(on_move=self.update_segment_positions)
-        handler.bind(on_loss=self.change_view_on_loss)
         handler.bind(on_loss=self.reset_on_loss)
+        handler.bind(on_loss=self.change_view_on_loss)
+
         
         handler.bind(on_fruit_eaten=self.add_snake_segment)
         handler.bind(on_fruit_eaten=self.spawn_fruit) #TODO -- temp
@@ -44,6 +45,7 @@ class Controller: #might want to create different classes for different controll
 
         if not game_started:
             self.spawn_fruit()
+            print(self.model.get_segments())
             handler.clock_cycle = Clock.schedule_interval(handler.dispatch_game_events, 0.4)
             self.model.game.set_game_state(True)
         
@@ -76,14 +78,14 @@ class Controller: #might want to create different classes for different controll
         if fruitpos == segments[-1]:
             print('fruit eaten')
             self.game_view.grid.handler.dispatch('on_fruit_eaten')
-            #self.model.set_segments()
+            
 
     def add_snake_segment(self, instance):
         segments = self.model.get_segments()
         new_segment = self.model.get_new_segment_pos()
 
-        segments.insert(0, new_segment)
-        self.model.set_segments(segments)
+        #segments.insert(0, new_segment)
+        #self.model.set_segments(segments)
         
         
 
@@ -98,9 +100,11 @@ class Controller: #might want to create different classes for different controll
 
     def change_view_on_loss(self, instance):
         self.sm.current = 'GameOverView'
-        self.game_view.grid.handler.clock_cycle.cancel() #Terminate the movement loop
+        
 
     def reset_on_loss(self, instance):
+        self.game_view.grid.handler.clock_cycle.cancel() #Terminate the movement loop
+
         segments = self.model.get_segments()
         grid = self.game_view.grid
 
@@ -110,11 +114,14 @@ class Controller: #might want to create different classes for different controll
         for i in clean_segments:
             grid.remove_segment(i)
         
+        #Clear fruit from the last game
         fruit = self.model.get_fruit_pos()
         grid.remove_segment(fruit)
         #Reset to a new snake
         self.model.set_segments([51, 52, 53])
         grid.set_segments([51, 52, 53])
+        
+        self.model.set_direction('d')
         self.model.game.set_game_state(False) #TODO -- need to remove fruit too, might just be better to clear the whole board and draw a new snake or sum
         
 

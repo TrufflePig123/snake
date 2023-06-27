@@ -88,7 +88,7 @@ class Model:
         return self.snake.direction
 
     def set_direction(self, direction):
-        self.snake.direction = direction
+        self.snake._direction = direction
 
     def get_fruit_pos(self):
         return self.game.fruit_pos
